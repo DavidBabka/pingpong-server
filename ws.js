@@ -25,11 +25,11 @@ const GAME_CONFIG = {
   paddleHeight: 90,
   ballRadius: 10,
   maxScore: 10,
-  ballSpeed: 1.5
+  ballSpeed: 2
 };
 
-let smoothingFactor = 1;
-let scaleFactor = 1;
+let smoothingFactor = 0.1;
+let scaleFactor = 20;
 
 let gameState = {
   ballX: GAME_CONFIG.width / 2,
