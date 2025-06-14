@@ -280,7 +280,6 @@ io.on('connection', socket => {
       );
     }
     if (clientId) {
-      console.log(`Forwarding message from controller ${socket.id} to client ${clientId}:`, message);
       io.emit('controllerMessage', { payload: message });
     }
   });
