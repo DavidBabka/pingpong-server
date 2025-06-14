@@ -16,6 +16,7 @@ const io = new Server(server, {
 const controllers = new Map(); // socketId → { id, name, available, posY }
 const clientControllerMap = new Map(); // clientSocketId → controllerSocketId
 const controllerClientMap = new Map(); // controllerSocketId → clientSocketId
+const restartVotes = new Set();
 
 // ——— Ping Pong Game Config & State ———
 const GAME_CONFIG = {
@@ -282,6 +283,22 @@ io.on('connection', socket => {
     if (clientId) {
       io.emit('controllerMessage', { payload: message });
     }
+  });
+
+  socket.on('restart-request', () => {
+    restartVotes.add(socket.id);
+
+    // If both players clicked restart
+    if (restartVotes.size >= 2) {
+      restartVotes.clear();
+      resetGame();
+      gameState.running = true;
+      broadcastGameState();
+    }
+  });
+
+  socket.on('disconnect', () => {
+    restartVotes.delete(socket.id);
   });
 
 
