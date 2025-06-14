@@ -28,8 +28,8 @@ const GAME_CONFIG = {
   ballSpeed: 3
 };
 
-let smoothingFactor = 0.1;
-let scaleFactor = 20;
+let smoothingFactor = 1;
+let scaleFactor = 1;
 
 let gameState = {
   ballX: GAME_CONFIG.width / 2,
