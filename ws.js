@@ -84,9 +84,9 @@ function removePlayer(socket) {
 
   // if that was the last one, fully reset
   if (getActiveGameClients().length === 0) {
-    gameState.running     = false;
+    gameState.running = false;
     resetPaddles();
-    gameState.score.left  = 0;
+    gameState.score.left = 0;
     gameState.score.right = 0;
     playerSides.clear();
   }
@@ -203,7 +203,7 @@ io.on('connection', socket => {
     }
   });
 
-    socket.on('leave', () => {
+  socket.on('leave', () => {
     removePlayer(socket);
   });
 
@@ -279,53 +279,56 @@ io.on('connection', socket => {
         Math.min(GAME_CONFIG.height - GAME_CONFIG.paddleHeight, newY)
       );
     }
-    io.emit('controllerMessage', { payload: message });
+    if (clientId) {
+      console.log(`Forwarding message from controller ${socket.id} to client ${clientId}:`, message);
+      io.to(clientId).emit('controllerMessage', { payload: message });
+    }
   });
 
 
-// — Disconnect handler (controllers + ping pong players) —
-socket.on('disconnect', () => {
-  console.log('Socket disconnected:', socket.id);
+  // — Disconnect handler (controllers + ping pong players) —
+  socket.on('disconnect', () => {
+    console.log('Socket disconnected:', socket.id);
 
-  // — Remove from ping pong game —
-  const gameIndex = activeGameClients.findIndex(s => s.id === socket.id);
-  if (gameIndex !== -1) {
-    activeGameClients.splice(gameIndex, 1);
-    playerSides.delete(socket.id);
-    gameState.running = false;
-    gameState.score.left = 0;
-    gameState.score.right = 0;
-    playerSides.clear();
-    broadcastGameState();
-  }
+    // — Remove from ping pong game —
+    const gameIndex = activeGameClients.findIndex(s => s.id === socket.id);
+    if (gameIndex !== -1) {
+      activeGameClients.splice(gameIndex, 1);
+      playerSides.delete(socket.id);
+      gameState.running = false;
+      gameState.score.left = 0;
+      gameState.score.right = 0;
+      playerSides.clear();
+      broadcastGameState();
+    }
 
-  // — Controller logic —
-  const clientId = controllerClientMap.get(socket.id);
-  if (clientId) {
-    io.to(clientId).emit('controllerDisconnected', { controllerId: socket.id });
-    const ctrl = controllers.get(socket.id);
-    if (ctrl) ctrl.available = true;
-    controllers.set(socket.id, ctrl);
-    controllerClientMap.delete(socket.id);
-    clientControllerMap.delete(clientId);
-    io.to('clients').emit('availableControllers', Array.from(controllers.values()).filter(c => c.available));
-  }
+    // — Controller logic —
+    const clientId = controllerClientMap.get(socket.id);
+    if (clientId) {
+      io.to(clientId).emit('controllerDisconnected', { controllerId: socket.id });
+      const ctrl = controllers.get(socket.id);
+      if (ctrl) ctrl.available = true;
+      controllers.set(socket.id, ctrl);
+      controllerClientMap.delete(socket.id);
+      clientControllerMap.delete(clientId);
+      io.to('clients').emit('availableControllers', Array.from(controllers.values()).filter(c => c.available));
+    }
 
-  const controllerId = clientControllerMap.get(socket.id);
-  if (controllerId) {
-    const ctrl = controllers.get(controllerId);
-    if (ctrl) ctrl.available = true;
-    controllers.set(controllerId, ctrl);
-    clientControllerMap.delete(socket.id);
-    controllerClientMap.delete(controllerId);
-    io.to('clients').emit('availableControllers', Array.from(controllers.values()).filter(c => c.available));
-  }
+    const controllerId = clientControllerMap.get(socket.id);
+    if (controllerId) {
+      const ctrl = controllers.get(controllerId);
+      if (ctrl) ctrl.available = true;
+      controllers.set(controllerId, ctrl);
+      clientControllerMap.delete(socket.id);
+      controllerClientMap.delete(controllerId);
+      io.to('clients').emit('availableControllers', Array.from(controllers.values()).filter(c => c.available));
+    }
 
-  if (controllers.has(socket.id)) {
-    controllers.delete(socket.id);
-    io.to('clients').emit('availableControllers', Array.from(controllers.values()).filter(c => c.available));
-  }
-});
+    if (controllers.has(socket.id)) {
+      controllers.delete(socket.id);
+      io.to('clients').emit('availableControllers', Array.from(controllers.values()).filter(c => c.available));
+    }
+  });
 });
 
 // — Start server —
