@@ -288,19 +288,20 @@ io.on('connection', socket => {
   socket.on('restart-request', () => {
     restartVotes.add(socket.id);
 
-    // If both players clicked restart
-    if (restartVotes.size >= 2) {
-      restartVotes.clear();
-      resetGame();
+    // Check if both players voted
+    if (restartVotes.size === 2) {
+      restartVotes.clear(); // reset the votes
+
+      // Reset game state
+      resetBall();
+      resetPaddles();
+      gameState.score.left = 0;
+      gameState.score.right = 0;
       gameState.running = true;
-      broadcastGameState();
+
+      broadcastGameState(); // notify both players
     }
   });
-
-  socket.on('disconnect', () => {
-    restartVotes.delete(socket.id);
-  });
-
 
   // — Disconnect handler (controllers + ping pong players) —
   socket.on('disconnect', () => {
@@ -317,6 +318,9 @@ io.on('connection', socket => {
       playerSides.clear();
       broadcastGameState();
     }
+
+    restartVotes.delete(socket.id);
+
 
     // — Controller logic —
     const clientId = controllerClientMap.get(socket.id);
