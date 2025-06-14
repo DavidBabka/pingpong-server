@@ -22,10 +22,10 @@ const GAME_CONFIG = {
   width: 600,
   height: 400,
   paddleWidth: 10,
-  paddleHeight: 80,
+  paddleHeight: 90,
   ballRadius: 10,
   maxScore: 10,
-  ballSpeed: 3
+  ballSpeed: 1.5
 };
 
 let smoothingFactor = 1;
