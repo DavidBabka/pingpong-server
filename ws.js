@@ -26,7 +26,7 @@ const GAME_CONFIG = {
   paddleHeight: 90,
   ballRadius: 10,
   maxScore: 10,
-  ballSpeed: 2
+  ballSpeed: 1.5
 };
 
 let smoothingFactor = 0.1;
